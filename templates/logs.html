@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Logy{% endblock %}
+
+{% block content %}
+
+<h1>Log soubory</h1>
+
+<div>
+  <table border="1" cellpadding="8" style="margin:auto; text-align:center;">
+  <tr>
+      <th>Soubor</th>
+      <th>Velikost</th>
+      <th>Vytvořeno</th>
+      <th>Akce</th>
+  </tr>
+
+  {% for file in files %}
+  <tr>
+      <td>📄 {{ file.name }}</td>
+      <td>{{ file.size }}</td>
+      <td>{{ file.modified }}</td>
+      <td>
+          <a href="{{ url_for('view_log', filename=file.name) }}">🔎 Zobrazit</a>
+          |
+          <a href="{{ url_for('download_log', filename=file.name) }}">⬇️ Stáhnout</a>
+      </td>
+  </tr>
+  {% endfor %}
+
+  </table>
+</div>
+
+{% if files|length == 0 %}
+<p>Žádné logy nebyly nalezeny.</p>
+{% endif %}
+
+<script>
+setTimeout(function(){
+    location.reload();
+}, 10000); // refresh každých 10s
+</script>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Mecz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2c3e50;
+            padding: 20px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .container {
+            margin-top: 60px;
+        }
+
+        .menu a {
+            display: inline-block;
+            margin: 15px;
+            padding: 15px 25px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+
+        .menu a:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+{% if team %}
+<p>Přihlášen jako {{team}}</p>
+{% endif %}
+
+<div class="container">
+    <div class="menu">
+        <a href="{{ url_for('home') }}">🏠 Hlavní stránka</a>
+        <a href="{{ url_for('logs') }}">📜 Logy</a>
+        <a href="{{ url_for('upload') }}">⬆️ Upload bota</a>
+        <a href="{{ url_for('custome_match') }}">🤖 Test bota</a>
+        <a href="{{ url_for('docs') }}">📚 Dokumentace</a>
+    </div>
+</div>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

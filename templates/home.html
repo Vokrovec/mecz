@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Scoreboard</h1>
+
+<div style="display:flex; justify-content:center; gap:50px">
+
+<canvas id="scoreChart" width="700" height="400" style="border:1px solid black;"></canvas>
+
+<div>
+<h2>🏆 Leaderboard</h2>
+<ol id="leaderboard"></ol>
+</div>
+
+</div>
+
+<div id="tooltip" style="
+position:absolute;
+background:white;
+border:1px solid black;
+padding:5px;
+display:none;
+font-size:14px;
+"></div>
+
+<script>
+
+let points = [];
+
+async function loadGraph() {
+
+    const response = await fetch("/api/score-history");
+    const data = await response.json();
+
+    drawGraph(data.rounds, data.teams);
+    buildLeaderboard(data.teams);
+}
+
+function randomColor(team) {
+
+    const colors = [
+    "#8B0000", // dark red
+    "#006400", // dark green
+    "#00008B", // dark blue
+    "#8B4513", // saddle brown
+    "#4B0082", // indigo
+    "#2F4F4F", // dark slate gray
+    "#191970", // midnight blue
+    "#556B2F", // dark olive green
+    "#483D8B", // dark slate blue
+    "#5F9EA0", // cadet blue
+    "#800000", // maroon
+    "#3B5323", // army green
+    "#2E0854", // dark purple
+    "#4A0404", // deep red
+    "#1B3B6F", // dark steel blue
+    "#2C2C54", // dark indigo
+    "#3C1414", // dark chocolate
+    "#0B3D0B", // forest dark green
+    "#1A1A40", // deep navy
+    "#3A3A3A"  // dark gray
+    ];
+  //stabilní barva podle názvu
+    let hash = 0;
+    for (let i=0;i<team.length;i++) hash = team.charCodeAt(i) + ((hash<<5)-hash);
+
+    //const r = (hash>>16)&255;
+    //const g = (hash>>8)&255;
+    //const b = hash&255;
+
+    return colors[hash%20];
+}
+function drawGraph(rounds, teams) {
+
+    const canvas = document.getElementById("scoreChart");
+    const ctx = canvas.getContext("2d");
+
+    const padding = 50;
+    const width = canvas.width - padding*2;
+    const height = canvas.height - padding*2;
+
+    points = [];
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // najít max skóre
+    let maxScore = 0;
+    for (const team in teams) {
+        maxScore = Math.max(maxScore, ...teams[team]);
+    }
+
+    // osy
+    ctx.beginPath();
+    ctx.moveTo(padding,padding);
+    ctx.lineTo(padding,canvas.height-padding);
+    ctx.lineTo(canvas.width-padding,canvas.height-padding);
+    ctx.stroke();
+
+    // vykreslit každou linii týmů
+    for (const team in teams) {
+
+        const color = randomColor(team);
+        const scores = teams[team];
+
+        // linie
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+
+        scores.forEach((score,i)=>{
+            const x = padding + (i/(rounds.length-1))*width;
+            const y = canvas.height-padding - (score/maxScore)*height;
+
+            if(i===0) ctx.moveTo(x,y);
+            else ctx.lineTo(x,y);
+
+            // uložit body pro tooltip
+            points.push({x,y,team,score,round:rounds[i]});
+        });
+
+        ctx.stroke();
+
+        // body
+        ctx.fillStyle = color;
+        scores.forEach((score,i)=>{
+            const x = padding + (i/(rounds.length-1))*width;
+            const y = canvas.height-padding - (score/maxScore)*height;
+            ctx.beginPath();
+            ctx.arc(x,y,4,0,Math.PI*2);
+            ctx.fill();
+        });
+    }
+
+    canvas.onmousemove = showTooltip;
+}
+
+function showTooltip(e) {
+
+    const tooltip=document.getElementById("tooltip");
+
+    const rect=e.target.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+
+    for(const p of points){
+
+        const dist=Math.hypot(mx-p.x,my-p.y);
+
+        if(dist<6){
+
+            tooltip.style.display="block";
+            tooltip.style.left=(e.pageX+10)+"px";
+            tooltip.style.top=(e.pageY+10)+"px";
+
+            tooltip.innerHTML=
+                "<b>"+p.team+"</b><br>"+
+                "Kolo: "+p.round+"<br>"+
+                "Score: "+p.score;
+
+            return;
+        }
+    }
+
+    tooltip.style.display="none";
+}
+
+function buildLeaderboard(teams){
+
+    const list=document.getElementById("leaderboard");
+
+    const ranking=Object.entries(teams).map(([team,scores])=>({
+        team,
+        score:scores[scores.length-1]
+    }));
+
+    ranking.sort((a,b)=>b.score-a.score);
+
+    list.innerHTML="";
+
+    ranking.forEach(r=>{
+        const li=document.createElement("li");
+        li.textContent=`${r.team} — ${r.score}`;
+        list.appendChild(li);
+    });
+
+}
+
+loadGraph();
+setTimeout(function(){
+  loadGraph();
+  //location.reload();
+}, 10000); // refresh každých 10s
+
+</script>
+
+{% endblock %}

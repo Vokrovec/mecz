@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Log {{ filename }}{% endblock %}
+
+{% block content %}
+
+<h1>Log: {{ filename }}</h1>
+
+<pre style="
+background:#aaaaaa;
+color:#000000;
+padding:20px;
+overflow:auto;
+max-height:600px;
+">
+{{ content }}
+</pre>
+
+<a href="{{ url_for('download_log', filename=filename) }}">
+⬇️ Stáhnout log
+</a>
+
+{% endblock %}

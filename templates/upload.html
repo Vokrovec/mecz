@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Upload{% endblock %}
+
+{% block content %}
+
+<h1>Nahrát bota</h1>
+
+{% if message %}
+<div style="color:green; font-size:18px; margin-bottom:15px;">
+    {{ message }}
+</div>
+{% endif %}
+
+<form id="uploadForm" method="POST" enctype="multipart/form-data">
+    <input id="fileInput" type="file" name="botfile" accept=".py, .c, .cpp, .java" required>
+    <br><br>
+    <button type="submit">Upload</button>
+</form>
+
+<p id="error" style="color:red;"></p>
+
+<script>
+const allowedExtensions = ["py", "c", "cpp", "java"];
+
+document.getElementById("uploadForm").addEventListener("submit", function(e) {
+    const fileInput = document.getElementById("fileInput");
+    const errorText = document.getElementById("error");
+    const succesText = document.getElementById("succes");
+
+    if (fileInput.files.length === 0) return;
+
+    const fileName = fileInput.files[0].name;
+    const extension = fileName.split(".").pop().toLowerCase();
+
+    if (!allowedExtensions.includes(extension)) {
+        e.preventDefault();
+        errorText.textContent = "Nepovolený typ souboru! Povolené jsou: " + allowedExtensions.join(", ");
+        succesText.textContent = ""
+    } else {
+        errorText.textContent = "";
+    }
+});
+</script>
+
+{% endblock %}
+
